@@ -11,10 +11,8 @@ impl Rucksack {
         let mut dup = self.first.intersection(&self.second);
         dup.next().copied()
     }
-
-    fn union(&self) {
-        let all = self.first.union(&self.second);
-        all.copied();
+    fn all(&self) -> HashSet<char> {
+        self.first.union(&self.second).copied().collect()
     }
 }
 
@@ -31,6 +29,21 @@ pub fn day03() {
         .sum();
 
     println!("Day 03 part 1: {}", sum_priorities);
+
+    let grouped_sacks: Vec<_> = rucksacks
+        .chunks(3)
+        .map(|rucksacks| {
+            rucksacks[1..]
+                .iter()
+                .fold(rucksacks[0].all(), |group, val| {
+                    group.intersection(&val.all()).copied().collect()
+                })
+        })
+        .filter_map(|set| set.iter().next().copied())
+        .collect();
+
+    let group_priorities: i32 = grouped_sacks.iter().map(priority).sum();
+    println!("Day 03 part 2: {}", group_priorities);
 }
 
 fn split_sack(sack: &str) -> Rucksack {
