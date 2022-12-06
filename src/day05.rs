@@ -6,17 +6,47 @@ use std::str;
 type Stack = VecDeque<char>;
 
 struct Command {
-    count: i32,
+    count: usize,
     pos_start: usize,
     pos_end: usize,
 }
 
 pub fn day05() {
-    let contents = include_str!("../resources/day05_example.txt");
+    let contents = include_str!("../resources/day05.txt");
 
-    let (stacks, commands) = parse(contents);
-    println!("Day 05, part 1:");
-    println!("Day 05, part 1:");
+    let (mut stacks, commands) = parse(contents);
+
+    for command in commands {
+        for _ in 0..command.count {
+            let b = stacks[command.pos_start - 1].pop_back().unwrap();
+            stacks[command.pos_end - 1].push_back(b);
+        }
+    }
+
+    let top_each_stacks: Vec<_> = stacks.iter().filter_map(|s| s.back()).copied().collect();
+
+    println!(
+        "Day 05, part 1: {:?}",
+        top_each_stacks.into_iter().collect::<String>()
+    );
+    let (mut stacks, commands) = parse(contents);
+
+    for command in commands {
+        let stack = stacks[command.pos_start - 1].clone();
+        stacks[command.pos_start - 1].truncate(stack.len() - command.count);
+        // copy the end of the deque and collect it back as a stack
+        let mut box_stack = stack
+            .range(stack.len() - command.count..stack.len())
+            .copied()
+            .collect::<Stack>();
+        stacks[command.pos_end - 1].append(&mut box_stack);
+    }
+    let top_each_stacks: Vec<_> = stacks.iter().filter_map(|s| s.back()).copied().collect();
+
+    println!(
+        "Day 05, part 2: {:?}",
+        top_each_stacks.into_iter().collect::<String>()
+    );
 }
 
 fn parse(contents: &str) -> (Vec<Stack>, Vec<Command>) {
@@ -31,11 +61,18 @@ fn parse_stacks(contents: &str) -> Vec<Stack> {
         .unwrap()
         .split_whitespace()
         .count();
-    println!("Debug stack length: {}", length);
 
     let mut boxes: Vec<&str> = contents.split('\n').collect();
+    /*
+    Remove the number line
+    ```
+            [D]
+        [N] [C]
+        [Z] [M] [P]
+        1   2   3
+    ```
+    */
     boxes.truncate(boxes.len() - 1);
-    println!("Debug box : {:?}", boxes);
 
     let mut stacks: Vec<Stack> = vec![VecDeque::new(); length];
 
@@ -65,13 +102,9 @@ fn parse_command(line: &str) -> Command {
     lazy_static! {
         static ref RE: Regex = Regex::new(r"move (\d+) from (\d+) to (\d+)").unwrap();
     }
-    for cap in RE.captures_iter(line) {
-        println!("cap {:?}", cap);
-    }
     let cap: Captures = RE.captures(line).unwrap();
-
     Command {
-        count: cap.get(1).unwrap().as_str().parse::<i32>().unwrap(),
+        count: cap.get(1).unwrap().as_str().parse::<usize>().unwrap(),
         pos_start: cap.get(2).unwrap().as_str().parse::<usize>().unwrap(),
         pos_end: cap.get(3).unwrap().as_str().parse::<usize>().unwrap(),
     }
