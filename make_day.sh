@@ -13,6 +13,6 @@ pub fn day$day() {
     let contents = include_str!("../resources/day${day}.txt");
 
     println!("Day ${day}, part 1:");
-    println!("Day ${day}, part 1:");
+    println!("Day ${day}, part 2:");
 }
 EOF
